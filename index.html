@@ -1,6 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <h2 id="title"></h2>
+    <p id="version"></p>
+    <div id="buttons"></div>
+    <br>
+    <br>
+    <a id="repo"></a>
+    <br>
+    <br>
+    <small id="credits"></small>
+</body>
+
 <script>
-    url = "text.txt"
-    fetch(url)
-        .then(r => r.text())
-        .then(t => alert(t))
+    async function main() {
+        // REPLACE RAW URL VARIABLE WITH GITHUB USERNAME AND REPO 
+        // const raw_url = "{USERNAME}/{REPOSITORY}"
+
+        const repository_url = await get_repository_url()
+        const raw_url = repository_url.replace(/^https:\/\/[^/]+|(\.[a-z]{2,3})$/g, "");
+        const api_url = "https://api.github.com/repos" + raw_url + "/releases/latest"
+        const release = JSON.parse(await curl(api_url))
+        const assets = release.assets
+
+        for (const i of assets) {
+            console.log(i.name + ":" + i.browser_download_url)
+            const button = document.createElement('a')
+            button.innerText = i.name
+            button.setAttribute("href", i.browser_download_url)
+            button.appendChild(document.createElement("br"))
+            document.getElementById("buttons").appendChild(button)
+        }
+
+        const url_sections = raw_url.split("/")
+        document.getElementById("title").innerText = url_sections[2]
+        document.getElementById("credits").innerText = "Made by: " + url_sections[1]
+        document.getElementById("version").innerText = "Latest release: " + release.name
+        document.getElementById("repo").innerText = "Previous releases"
+        document.getElementById("repo").setAttribute("href", "https://github.com/" + raw_url + "/releases")
+    }
+
+    async function get_repository_url() {
+        const text = await curl(".git/config")
+        const regex = /https?:\/\/[\w./-]*github\.com[\w./-]*/;
+        const match = text.match(regex);
+        return match ? match[0] : null;
+    }
+
+    async function curl(url) {
+        const data = await fetch(url)
+        return (await data.text())
+    }
+
+    main()
 </script>
+
+</html>

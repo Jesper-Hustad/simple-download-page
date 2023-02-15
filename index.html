@@ -22,15 +22,14 @@
 
 <script>
     async function main() {
-        // REPLACE RAW URL VARIABLE WITH GITHUB USERNAME AND REPO 
-        // const raw_url = "{USERNAME}/{REPOSITORY}"
+        // FOR PERFORMANCE REPLACE RAW URL VARIABLE WITH GITHUB USERNAME AND REPO 
 
-        const repository_url = await get_repository_url()
-        const raw_url = repository_url.replace(/^https:\/\/[^/]+|(\.[a-z]{2,3})$/g, "");
-        const api_url = "https://api.github.com/repos" + raw_url + "/releases/latest"
+        const raw_url = await get_repository_url()
+            // const raw_url = "{USERNAME}/{REPOSITORY}"
+
+        const api_url = "https://api.github.com/repos/" + raw_url + "/releases/latest"
         const release = JSON.parse(await curl(api_url))
         const assets = release.assets
-        console.log(repository_url, raw_url, api_url, release)
 
         for (const i of assets) {
             const button = document.createElement('a')
@@ -41,18 +40,30 @@
         }
 
         const url_sections = raw_url.split("/")
-        document.getElementById("title").innerText = url_sections[2]
-        document.getElementById("credits").innerText = "Made by: " + url_sections[1]
+        document.getElementById("title").innerText = url_sections[1]
+        document.getElementById("credits").innerText = "Made by: " + url_sections[0]
         document.getElementById("version").innerText = "Latest release: " + release.name
         document.getElementById("repo").innerText = "Previous releases"
         document.getElementById("repo").setAttribute("href", "https://github.com/" + raw_url + "/releases")
     }
 
+
     async function get_repository_url() {
+        const is_localhost = (location.hostname === "localhost" || location.hostname === "127.0.0.1" || location.hostname === "")
+        return is_localhost ? (await localhost_repo()) : github_pages_repo()
+    }
+
+    function github_pages_repo() {
+        return location.host.split(".")[0] + "/" + location.pathname.split('/')[1]
+    }
+
+    async function localhost_repo() {
         const text = await curl(".git/config")
         const regex = /https?:\/\/[\w./-]*github\.com[\w./-]*/;
         const match = text.match(regex);
-        return match ? match[0] : null;
+        const url = match ? match[0] : null;
+        const result = url.replace(/^https:\/\/[^/]+\/|(\.[a-z]{2,3})$/g, "");
+        return result
     }
 
     async function curl(url) {

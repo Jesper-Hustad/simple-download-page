@@ -1,7 +1,9 @@
 # Simple Download Page
 Automatically generated custom download page for your repository using GitHub releases.
 
-**Example for this repository:**  
+[**Visit Automatic Download page for this repository:**](https://jesper-hustad.github.io/simple-download-page/)   
+
+
 [![](example.png)](https://jesper-hustad.github.io/simple-download-page/)
 
 
